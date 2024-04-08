@@ -66,7 +66,7 @@ void HashedFiles::AddNode
 
 void HashedFiles::SortAndCheck(int SortMode)
 {
-	// Merge-Exchange sort
+	// Shell Sort
 	BOOL swap;
 	tagFileNode* TempNode;
 	int i, j, diff = 0;
