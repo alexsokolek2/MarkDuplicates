@@ -356,7 +356,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				// Initially, _T(""), replaced by the path to scan via ofn.lpstrFile
 				TCHAR* pszOpenFileName = new TCHAR[MAX_PATH];
-				ZeroMemory(pszOpenFileName, sizeof(pszOpenFileName));
+				ZeroMemory(pszOpenFileName, MAX_PATH * sizeof(TCHAR));
 
 				ofn.lStructSize = sizeof(OPENFILENAME);
 				ofn.hwndOwner = hWnd;
