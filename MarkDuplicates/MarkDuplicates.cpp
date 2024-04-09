@@ -356,7 +356,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				// Initially, _T(""), replaced by the path to scan via ofn.lpstrFile
 				TCHAR* pszOpenFileName = new TCHAR[MAX_PATH];
-				ZeroMemory(pszOpenFileName, sizeof(pszOpenFileName));
+				ZeroMemory(pszOpenFileName, MAX_PATH * sizeof(TCHAR));
 
 				ofn.lStructSize = sizeof(OPENFILENAME);
 				ofn.hwndOwner = hWnd;
@@ -377,7 +377,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					TCHAR sz[MAX_ERROR_MESSAGE_LEN];
 					StringCchPrintf(sz, MAX_ERROR_MESSAGE_LEN,
 						_T("API Error occurred at line %ld error code %ld"), LastAPICallLine, CommDlgExtendedError());
-					MessageBox(hWnd, sz, _T("ApplicationRegistry.cpp"), MB_OK + MB_ICONSTOP);
+					MessageBox(hWnd, sz, _T("MarkDuplicates.cpp"), MB_OK + MB_ICONSTOP);
 					break;
 				}
 				ofn.lpstrFile[ofn.nFileOffset] = TCHAR('\0'); // We only want the path, so eliminate the file name.
