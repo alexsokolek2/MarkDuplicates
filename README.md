@@ -1,3 +1,5 @@
+MarkDuplicates.cpp : Defines the entry point for the application.
+
 MarkDuplicates scans a user specified directory, gathering filenames,
 write times, and sizes, along with the generated SHA-1 message digest.
 This information is put into a class (a list of nodes). It is sorted
@@ -30,7 +32,7 @@ so that review (which can be lengthy) can continue later.
  
 Demonstrates using a class to wrap a set of C functions implementing
 the SHA-1 Secure Message Digest algorithm described in RFC-3174.
- 
+
 Compilation requires that UNICODE be defined. Some of the choices
 made in code, mainly wstring, do not support detecting UNICODE vs
 non-UNICODE, so don't compile without UNICODE defined.
@@ -38,6 +40,8 @@ non-UNICODE, so don't compile without UNICODE defined.
 In case you get linker errors, be sure to include version.lib
 in the linker input line.
  
-Microsoft Visual Studio 2022 Community Edition 64 Bit 17.9.5
+Microsoft Visual Studio 2022 Community Edition 64 Bit 17.9.6
 
-Alex Sokolek, Version 1.0.0.1, Copyright (c) March 29, 2024
+Alex Sokolek, Version 1.0.0.2, Copyright (c) March 29, 2024
+
+Version 1.0.0.2, April 10, 2024, Corrected PeekMessage() error.
