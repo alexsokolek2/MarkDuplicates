@@ -95,8 +95,5 @@
     <None Include="Test5.dat">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="test.mdc">
-      <Filter>Source Files</Filter>
-    </None>
   </ItemGroup>
 </Project>
