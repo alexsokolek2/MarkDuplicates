@@ -475,8 +475,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 					// Check for ESC pressed - Abort if so.
 					MSG msg;
-					if (!PeekMessage(&msg, NULL, WM_KEYDOWN, WM_KEYDOWN, PM_REMOVE)) continue;
-					if (msg.wParam != VK_ESCAPE) continue;
+					if (!PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) continue;
+					if (msg.message != WM_KEYDOWN || msg.wParam != VK_ESCAPE) continue;
 					pCHashedFiles->Reset();
 					bEscapePressed = true;
 					break;
