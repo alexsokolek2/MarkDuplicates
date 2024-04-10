@@ -466,7 +466,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					SetBkColor(dc, RGB(240, 240, 240));
 					TextOut(dc, 16, 16, szFilesProcessed, lstrlen(szFilesProcessed));
 					TextOut(dc, 16, 40, _T("Press ESC to abort."), 19);
-
+					
 					// Check for ESC pressed - Abort if so.
 					MSG msg;
 					if (!PeekMessage(&msg, NULL, WM_KEYDOWN, WM_KEYDOWN, PM_REMOVE)) continue;
