@@ -79,6 +79,7 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    MDBoxProc(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
 	                  _In_opt_ HINSTANCE hPrevInstance,
@@ -283,6 +284,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	switch (message)
 	{
+	case WM_INITDIALOG:
+	{
+		return true;
+	}
+
 	case WM_COMMAND:
 		{
 		sha1file SHAFile;
@@ -1237,7 +1243,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_CREATE:
 		// Create the modeless dialog box - We will display it later in the process procedure
-		hWndProgressBox = CreateDialog(hInst, MAKEINTRESOURCE(IDD_PROGRESS_BOX), hWnd, NULL);
+		hWndProgressBox = CreateDialog(hInst, MAKEINTRESOURCE(IDD_PROGRESS_BOX), hWnd, (DLGPROC)MDBoxProc);
 		if (hWndProgressBox == NULL)
 		{
 			MessageBeep(MB_ICONEXCLAMATION);
@@ -1273,4 +1279,21 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	return (INT_PTR)FALSE;
+}
+
+// Message handler for modeless dialog box.
+INT_PTR CALLBACK MDBoxProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(hDlg);
+	UNREFERENCED_PARAMETER(wParam);
+	UNREFERENCED_PARAMETER(lParam);
+
+	switch (message)
+	{
+	case WM_INITDIALOG:
+		return true;
+	case WM_COMMAND:
+		return true;
+	}
+	return false;
 }
