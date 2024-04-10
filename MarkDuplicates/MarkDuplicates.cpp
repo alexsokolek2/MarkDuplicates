@@ -369,7 +369,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				int LastAPICallLine = __LINE__ + 1;
 				if (!GetOpenFileName(&ofn)) // Retrieves the fully qualified file name that was selected.
 				{
-					if (CommDlgExtendedError() == 0)
+					if (CommDlgExtendedError() == 0) // Case of user pressed Cancel.
 					{
 						delete[] pszOpenFileName;
 						break;
@@ -458,8 +458,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					// Add the file information to the HashedFiles class.
 					pCHashedFiles->AddNode(pszMessageDigest, pszFileDate, pszFileTime, pszFileSize, Win32FindData.cFileName);
 
-					// Update the user about process.
-					int iPercent = (int)((float)pCHashedFiles->GetNodeCount() * 100.f / iTotalFiles + 0.5f);
+					// Update the user about progress.
+					int iPercent = (int)(pCHashedFiles->GetNodeCount() * 100.f / iTotalFiles + 0.5f);
 					StringCchPrintf(szFilesProcessed, 100,
 					                _T("Files processed: %u     %d%% of %d     MBytes processed: %llu"),
 					                pCHashedFiles->GetNodeCount(), iPercent, iTotalFiles, BytesProcessed/1024/1024);
@@ -1222,7 +1222,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_DESTROY:
 		// Save window placement to the registry
-		{
+		 {
 			WINDOWPLACEMENT wp;
 			ZeroMemory(&wp, sizeof(wp));
 			wp.length = sizeof(wp);
@@ -1237,8 +1237,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_CREATE:
 		// Create the modeless dialog box - We will display it later in the process procedure
-		hWndProgressBox = CreateDialog
-		(hInst, MAKEINTRESOURCE(IDD_PROGRESS_BOX), hWnd, NULL);
+		hWndProgressBox = CreateDialog(hInst, MAKEINTRESOURCE(IDD_PROGRESS_BOX), hWnd, NULL);
 		if (hWndProgressBox == NULL)
 		{
 			MessageBeep(MB_ICONEXCLAMATION);
