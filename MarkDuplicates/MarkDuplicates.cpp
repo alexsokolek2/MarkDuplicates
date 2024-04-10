@@ -40,9 +40,12 @@
 // In case you get linker errors, be sure to include version.lib
 // in the linker input line.
 // 
-// Microsoft Visual Studio 2022 Community Edition 64 Bit 17.9.5
+// Microsoft Visual Studio 2022 Community Edition 64 Bit 17.9.6
 //
-// Alex Sokolek, Version 1.0.0.1, Copyright (c) March 29, 2024
+// Alex Sokolek, Version 1.0.0.2, Copyright (c) March 29, 2024
+//
+// Version 1.0.0.2, April 10, 2024, Corrected PeekMessage() error.
+
 
 #include "framework.h"
 #include "MarkDuplicates.h"
