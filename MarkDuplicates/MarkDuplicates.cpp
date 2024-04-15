@@ -45,7 +45,8 @@
 // Alex Sokolek, Version 1.0.0.1, Copyright (c) March 29, 2024
 //
 // Version 1.0.0.2, April 10, 2024, Corrected PeekMessage() error.
-
+//
+// Version 1.0.0.3, April 24, 2024, Updated version for release.
 
 #include "framework.h"
 #include "MarkDuplicates.h"

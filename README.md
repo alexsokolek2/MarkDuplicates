@@ -45,3 +45,5 @@ Microsoft Visual Studio 2022 Community Edition 64 Bit 17.9.6
 Alex Sokolek, Version 1.0.0.2, Copyright (c) March 29, 2024
 
 Version 1.0.0.2, April 10, 2024, Corrected PeekMessage() error.
+
+Version 1.0.0.3, April 14, 2024, Updated version for release.
