@@ -23,6 +23,7 @@ private:
 	int          _NodeCount;
 	int          _Allocated;
 	int          _Increment;
+	wstring      _DirectoryName;
 	int          HashCompare(const wstring& string1, const wstring& string2) const;
 	int          FileCompare(const wstring& string1, const wstring& string2) const;
 	int          DateCompare(const wstring& string1, const wstring& string2) const;
@@ -41,6 +42,7 @@ public:
 	BOOL GetFile(int Node, wstring& FileName) const;
 	BOOL GetNode(int Node, BOOL& Duplicate) const;
 	void Reset(int Increment = NODE_ALLOCATION_INCREMENT);
-	BOOL Save(HWND hWnd, const int& iStartNode, const int& iSelectedFile, const int& iSortMode) const;
-	BOOL Load(HWND hWnd, int& iStartNode, int& iSelectedFile, int& iSortMode);
+	BOOL Save(HWND hWnd, const int& iStartNode, const int& iSelectedFile,
+	          const int& iSortMode, const wstring& DirectoryName) const;
+	BOOL Load(HWND hWnd, int& iStartNode, int& iSelectedFile, int& iSortMode, wstring& DirectoryName);
 };

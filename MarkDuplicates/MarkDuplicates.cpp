@@ -67,6 +67,7 @@ LOGFONT sLogFont;                               // The LogFont structure for the
 BOOL bChooseFont = false;                       // The result of calling ChooseFont
 HFONT hFont = 0, hOldFont = 0;                  // Old and new fonts for the paint procedure
 HashedFiles* pCHashedFiles;                     // Hashed Files class
+wstring DirectoryName;                          // Temp directory for hashed files
 TCHAR szDirectoryName[MAX_PATH];                // Directory for hashed files
 TCHAR szOldDirectoryName[MAX_PATH];             // Original current directory
 BOOL bMarked = false;                           // Flag indicating that the files have already been marked
@@ -577,7 +578,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				MessageBox(hWnd, _T("Scan first, then save!"), szTitle, MB_OK | MB_ICONEXCLAMATION);
 				break;
 			}
-			pCHashedFiles->Save(hWnd, iStartNode, iSelectedFile, iSortMode);
+			pCHashedFiles->Save(hWnd, iStartNode, iSelectedFile, iSortMode, szDirectoryName);
 			break;
 
 		case ID_FILE_LOAD:
@@ -592,7 +593,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					szTitle, MB_YESNO | MB_DEFBUTTON2) != IDYES) break;
 			}
 			pCHashedFiles->Reset();
-			pCHashedFiles->Load(hWnd, iStartNode, iSelectedFile, iSortMode);
+			pCHashedFiles->Load(hWnd, iStartNode, iSelectedFile, iSortMode, DirectoryName);
+			StringCchCopy(szDirectoryName, MAX_PATH, DirectoryName.c_str());
 			InvalidateRect(hWnd, NULL, true); // Generate paint message.
 			break;
 

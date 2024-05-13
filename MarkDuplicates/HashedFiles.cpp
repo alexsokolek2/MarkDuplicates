@@ -257,9 +257,11 @@ void HashedFiles::Reset(int Increment)
 }
 
 //=============================================================================
-// Save - Saves the class, along with three parameters, to a user specified file.
+// Save - Saves the class, along with three parameters
+// and the selected directory, to a user specified file.
 //=============================================================================
-BOOL HashedFiles::Save(HWND hWnd, const int& iStartNode, const int& iSelectedFile, const int& iSortMode) const
+BOOL HashedFiles::Save(HWND hWnd, const int& iStartNode, const int& iSelectedFile,
+	                   const int& iSortMode, const wstring& DirectoryName) const
 {
 	// Setup for the GetSaveFileName() call.
 	OPENFILENAME ofn;
@@ -307,7 +309,8 @@ BOOL HashedFiles::Save(HWND hWnd, const int& iStartNode, const int& iSelectedFil
 	TCHAR sz[16];
 	_itow_s(iStartNode,    sz, 16, 10); line += sz; line += _T("|");
 	_itow_s(iSelectedFile, sz, 16, 10); line += sz; line += _T("|");
-	_itow_s(iSortMode,     sz, 16, 10); line += sz; line += _T("\r\n");
+	_itow_s(iSortMode,     sz, 16, 10); line += sz; line += _T("|");
+	line +=                  DirectoryName.c_str(); line += _T("\r\n");
 	LastAPICallLine = __LINE__ + 1;
 	if (!WriteFile(hFile, line.c_str(), (DWORD)line.length() * sizeof(TCHAR), NULL, NULL))
 	{
@@ -357,7 +360,7 @@ BOOL HashedFiles::Save(HWND hWnd, const int& iStartNode, const int& iSelectedFil
 //=============================================================================
 // Load - Loads the class, along with three parameters, from a user specified file.
 //=============================================================================
-BOOL HashedFiles::Load(HWND hWnd, int& iStartNode, int& iSelectedFile, int& iSortMode)
+BOOL HashedFiles::Load(HWND hWnd, int& iStartNode, int& iSelectedFile, int& iSortMode, wstring& DirectoryName)
 {
 	// Setup for the GetOpenFileName() call.
 	OPENFILENAME ofn;
@@ -403,7 +406,7 @@ BOOL HashedFiles::Load(HWND hWnd, int& iStartNode, int& iSelectedFile, int& iSor
 	Reset();
 
 	// Read and process the header line.
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < 4; ++i)
 	{
 		token = _T("");
 		do
@@ -441,6 +444,7 @@ BOOL HashedFiles::Load(HWND hWnd, int& iStartNode, int& iSelectedFile, int& iSor
 				case 0: iStartNode    = _wtoi(token.c_str()); break;
 				case 1: iSelectedFile = _wtoi(token.c_str()); break;
 				case 2: iSortMode     = _wtoi(token.c_str()); break;
+				case 3: DirectoryName = token;                break;
 				}
 			}
 		} while (chr != L'|' && chr != L'\n');
