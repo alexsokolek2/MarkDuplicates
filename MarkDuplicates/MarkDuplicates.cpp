@@ -593,8 +593,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					szTitle, MB_YESNO | MB_DEFBUTTON2) != IDYES) break;
 			}
 			pCHashedFiles->Reset();
-			pCHashedFiles->Load(hWnd, iStartNode, iSelectedFile, iSortMode, DirectoryName);
-			StringCchCopy(szDirectoryName, MAX_PATH, DirectoryName.c_str());
+			pCHashedFiles->Load(hWnd, iStartNode, iSelectedFile, iSortMode, szDirectoryName);
 			InvalidateRect(hWnd, NULL, true); // Generate paint message.
 			break;
 

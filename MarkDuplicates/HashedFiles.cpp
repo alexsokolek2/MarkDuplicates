@@ -261,7 +261,7 @@ void HashedFiles::Reset(int Increment)
 // and the selected directory, to a user specified file.
 //=============================================================================
 BOOL HashedFiles::Save(HWND hWnd, const int& iStartNode, const int& iSelectedFile,
-	                   const int& iSortMode, const wstring& DirectoryName) const
+	                   const int& iSortMode, const TCHAR* pszDirectoryName) const
 {
 	// Setup for the GetSaveFileName() call.
 	OPENFILENAME ofn;
@@ -310,7 +310,9 @@ BOOL HashedFiles::Save(HWND hWnd, const int& iStartNode, const int& iSelectedFil
 	_itow_s(iStartNode,    sz, 16, 10); line += sz; line += _T("|");
 	_itow_s(iSelectedFile, sz, 16, 10); line += sz; line += _T("|");
 	_itow_s(iSortMode,     sz, 16, 10); line += sz; line += _T("|");
-	line +=                  DirectoryName.c_str(); line += _T("\r\n");
+	for (int i = 0; i < lstrlen(pszDirectoryName); ++i)
+		line += *(&pszDirectoryName[i]);
+	line += _T("\r\n");
 	LastAPICallLine = __LINE__ + 1;
 	if (!WriteFile(hFile, line.c_str(), (DWORD)line.length() * sizeof(TCHAR), NULL, NULL))
 	{
@@ -358,10 +360,12 @@ BOOL HashedFiles::Save(HWND hWnd, const int& iStartNode, const int& iSelectedFil
 	return true;
 }
 //=============================================================================
-// Load - Loads the class, along with three parameters, from a user specified file.
+// Load - Loads the class, the selected directory, along
+// with three parameters, from a user specified file.
 //=============================================================================
-BOOL HashedFiles::Load(HWND hWnd, int& iStartNode, int& iSelectedFile, int& iSortMode, wstring& DirectoryName)
+BOOL HashedFiles::Load(HWND hWnd, int& iStartNode, int& iSelectedFile, int& iSortMode, TCHAR* pszDirectoryName)
 {
+	(pszDirectoryName);
 	// Setup for the GetOpenFileName() call.
 	OPENFILENAME ofn;
 	ZeroMemory(&ofn, sizeof(ofn));
@@ -444,7 +448,7 @@ BOOL HashedFiles::Load(HWND hWnd, int& iStartNode, int& iSelectedFile, int& iSor
 				case 0: iStartNode    = _wtoi(token.c_str()); break;
 				case 1: iSelectedFile = _wtoi(token.c_str()); break;
 				case 2: iSortMode     = _wtoi(token.c_str()); break;
-				case 3: DirectoryName = token;                break;
+				case 3: StringCchCopy(pszDirectoryName, MAX_PATH, token.c_str());                break;
 				}
 			}
 		} while (chr != L'|' && chr != L'\n');
