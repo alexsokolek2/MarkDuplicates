@@ -47,6 +47,8 @@
 // Version 1.0.0.2, April 10, 2024, Corrected PeekMessage() error.
 //
 // Version 1.0.0.3, April 24, 2024, Updated version for release.
+//
+// Version 1.0.0.4, May 14, 2024, Fixed saving/loading of selected directory.
 
 #include "framework.h"
 #include "MarkDuplicates.h"
