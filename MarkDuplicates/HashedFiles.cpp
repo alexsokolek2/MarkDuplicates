@@ -310,8 +310,7 @@ BOOL HashedFiles::Save(HWND hWnd, const int& iStartNode, const int& iSelectedFil
 	_itow_s(iStartNode,    sz, 16, 10); line += sz; line += _T("|");
 	_itow_s(iSelectedFile, sz, 16, 10); line += sz; line += _T("|");
 	_itow_s(iSortMode,     sz, 16, 10); line += sz; line += _T("|");
-	for (int i = 0; i < lstrlen(pszDirectoryName); ++i)
-		line += *(&pszDirectoryName[i]);
+	for (int i = 0; i < lstrlen(pszDirectoryName); ++i) line += *(&pszDirectoryName[i]);
 	line += _T("\r\n");
 	LastAPICallLine = __LINE__ + 1;
 	if (!WriteFile(hFile, line.c_str(), (DWORD)line.length() * sizeof(TCHAR), NULL, NULL))
