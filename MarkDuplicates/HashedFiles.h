@@ -23,6 +23,9 @@ private:
 	int          _NodeCount;
 	int          _Allocated;
 	int          _Increment;
+	int          _NextNode;
+	int          _NodesProcessed;
+	int          _BytesProcessed;
 	int          HashCompare(const wstring& string1, const wstring& string2) const;
 	int          FileCompare(const wstring& string1, const wstring& string2) const;
 	int          DateCompare(const wstring& string1, const wstring& string2) const;
@@ -39,6 +42,8 @@ public:
 	             wstring& FileTime, wstring& FileSize, wstring& FileName) const;
 	void SetDuplicate(int Node, BOOL Duplicate) { _NodeList[Node]->Duplicate = Duplicate; }
 	BOOL GetFile(int Node, wstring& FileName) const;
+	BOOL GetNextFile(wstring& FileName);
+	BOOL SaveHash(int Node, wstring& FileHash);
 	BOOL GetNode(int Node, BOOL& Duplicate) const;
 	void Reset(int Increment = NODE_ALLOCATION_INCREMENT);
 	BOOL Save(HWND hWnd, const int& iStartNode, const int& iSelectedFile,
