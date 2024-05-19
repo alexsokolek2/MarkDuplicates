@@ -237,10 +237,12 @@ BOOL HashedFiles::GetFile(int Node, wstring& FileName) const
 // GetNextFile - Similar to GetFile, gets the next file, and updates index.
 //               Called from the worker thread.
 //=============================================================================
-BOOL HashedFiles::GetNextFile(wstring& FileName)
+BOOL HashedFiles::GetNextFile(int& Node, wstring& FileName)
 {
 	if (_NextNode > _NodeCount - 1) return false;
-	FileName = _NodeList[_NextNode++]->FileName->c_str();
+	FileName = _NodeList[_NextNode]->FileName->c_str();
+	Node = _NextNode;
+	_NextNode++;
 	return true;
 
 }

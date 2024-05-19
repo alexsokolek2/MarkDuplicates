@@ -43,10 +43,10 @@ public:
 	             wstring& FileTime, wstring& FileSize, wstring& FileName) const;
 	void SetDuplicate(int Node, BOOL Duplicate) { _NodeList[Node]->Duplicate = Duplicate; }
 	BOOL GetFile(int Node, wstring& FileName) const;
-	BOOL GetNextFile(wstring& FileName);
+	BOOL GetNextFile(int& Node, wstring& FileName);
 	BOOL SaveHash(int Node, wstring& FileHash);
-	int  GetBytesProcessed() { return _BytesProcessed; };
-	int  GetTotalBytes() { return _TotalBytes; };
+	int  GetBytesProcessed() const { return _BytesProcessed; }
+	int  GetTotalBytes() const { return _TotalBytes; }
 	BOOL GetNode(int Node, BOOL& Duplicate) const;
 	void Reset(int Increment = NODE_ALLOCATION_INCREMENT);
 	BOOL Save(HWND hWnd, const int& iStartNode, const int& iSelectedFile,
