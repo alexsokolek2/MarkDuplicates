@@ -472,29 +472,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					BytesProcessed += FileSize;
 
 					// Generate sha1 digest.
-					SHAFile.Process(Win32FindData.cFileName, 0, pszMessageDigest, NULL);
+//					SHAFile.Process(Win32FindData.cFileName, 0, pszMessageDigest, NULL);
 
 					// Add the file information to the HashedFiles class.
-					pCHashedFiles->AddNode(pszMessageDigest, pszFileDate, pszFileTime, pszFileSize, Win32FindData.cFileName);
-
-					// Update the user about progress.
-					int iPercent = (int)(pCHashedFiles->GetNodeCount() * 100.f / iTotalFiles + 0.5f);
-					StringCchPrintf(szFilesProcessed, 100,
-					                _T("Files processed: %u     %d%% of %d     MBytes processed: %llu"),
-					                pCHashedFiles->GetNodeCount(), iPercent, iTotalFiles, BytesProcessed/1024/1024);
-					SetBkColor(dc, RGB(240, 240, 240));
-					TextOut(dc, 16, 16, szFilesProcessed, lstrlen(szFilesProcessed));
-					TextOut(dc, 16, 40, _T("Press ESC to abort."), 19);
-
-					// Check for ESC pressed - Abort if so.
-					MSG msg;
-					if (!PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) continue;
-					if (msg.message != WM_KEYDOWN || msg.wParam != VK_ESCAPE) continue;
-					pCHashedFiles->Reset();
-					bEscapePressed = true;
-					break;
+					pCHashedFiles->AddNode(_T(""), pszFileDate, pszFileTime, pszFileSize, Win32FindData.cFileName);
 
 				} while (FindNextFile(hFind, &Win32FindData) != 0); // Process all files in the directory.
+
+				
+				
+/////////////////// Update the user about progress.
+//					int iPercent = (int)(pCHashedFiles->GetNodeCount() * 100.f / iTotalFiles + 0.5f);
+//					StringCchPrintf(szFilesProcessed, 100,
+//					                _T("Files processed: %u     %d%% of %d     MBytes processed: %llu"),
+//					                pCHashedFiles->GetNodeCount(), iPercent, iTotalFiles, BytesProcessed/1024/1024);
+//					SetBkColor(dc, RGB(240, 240, 240));
+//					TextOut(dc, 16, 16, szFilesProcessed, lstrlen(szFilesProcessed));
+//					TextOut(dc, 16, 40, _T("Press ESC to abort."), 19);
+//
+//					// Check for ESC pressed - Abort if so.
+//					MSG msg;
+//					if (!PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) continue;
+//					if (msg.message != WM_KEYDOWN || msg.wParam != VK_ESCAPE) continue;
+//					pCHashedFiles->Reset();
+//					bEscapePressed = true;
+//					break;
 
 				MessageBeep(MB_ICONASTERISK);
 				FindClose(hFind);

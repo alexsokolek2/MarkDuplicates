@@ -26,7 +26,6 @@ HashedFiles::HashedFiles(int Increment)
 	_NextNode = 0;
 	_NodesProcessed = 0;
 	_BytesProcessed = 0;
-	_TotalBytes = 0;
 }
 
 //=============================================================================
@@ -55,7 +54,6 @@ void HashedFiles::AddNode
 	_NodeList[_NodeCount]->FileSize  = new wstring(FileSize);
 	_NodeList[_NodeCount]->FileName  = new wstring(FileName);
 	_NodeCount++;
-	_TotalBytes += _wtoi((const TCHAR *)(FileSize.c_str())
 }
 
 //=============================================================================
@@ -234,8 +232,8 @@ BOOL HashedFiles::GetFile(int Node, wstring& FileName) const
 }
 
 //=============================================================================
-// GetNextFile - Similar to GetFile, gets the next file, and updates index.
-//               Called from the worker thread.
+// GetNextFile - Similar to GetFile, gets the next file, and updates
+//               the "next" index. Called from the worker thread.
 //=============================================================================
 BOOL HashedFiles::GetNextFile(int& Node, wstring& FileName)
 {
@@ -289,7 +287,6 @@ void HashedFiles::Reset(int Increment)
 		_NextNode = 0;
 		_NodesProcessed = 0;
 		_BytesProcessed = 0;
-		_TotalBytes = 0;
 	}
 }
 
