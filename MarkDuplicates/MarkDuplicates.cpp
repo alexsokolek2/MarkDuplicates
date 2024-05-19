@@ -1,3 +1,8 @@
+//======================================================================
+// WARNING: If you can see this warning, then you have the wrong version
+// of this source code. Please go back and reclone the repository, and
+// then do a git checkout v1.0.0.3 to get the latest release version.
+//======================================================================
 // MarkDuplicates.cpp : Defines the entry point for the application.
 //
 // MarkDuplicates scans a user specified directory, gathering filenames,
