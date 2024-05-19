@@ -26,6 +26,7 @@ HashedFiles::HashedFiles(int Increment)
 	_NextNode = 0;
 	_NodesProcessed = 0;
 	_BytesProcessed = 0;
+	_TotalBytes = 0;
 }
 
 //=============================================================================
@@ -54,6 +55,7 @@ void HashedFiles::AddNode
 	_NodeList[_NodeCount]->FileSize  = new wstring(FileSize);
 	_NodeList[_NodeCount]->FileName  = new wstring(FileName);
 	_NodeCount++;
+	_TotalBytes += _wtoi((const TCHAR *)(FileSize.c_str())
 }
 
 //=============================================================================
@@ -253,7 +255,7 @@ BOOL HashedFiles::SaveHash(int Node, wstring& FileHash)
 	if (Node < 0 || Node > _NodeCount - 1) return false;
 	*(_NodeList[Node]->FileHash) = FileHash;
 	_NodesProcessed++;
-	_BytesProcessed += atoi((const char *)(_NodeList[Node]->FileSize->c_str()));
+	_BytesProcessed += _wtoi((const TCHAR *)(_NodeList[Node]->FileSize->c_str()));
 	return true;
 }
 
@@ -285,6 +287,7 @@ void HashedFiles::Reset(int Increment)
 		_NextNode = 0;
 		_NodesProcessed = 0;
 		_BytesProcessed = 0;
+		_TotalBytes = 0;
 	}
 }
 
