@@ -23,6 +23,9 @@ HashedFiles::HashedFiles(int Increment)
 	_NodeList = new FileNode[Increment];
 	_NodeCount = 0;
 	_Allocated = _Increment = Increment;
+	_NextNode = 0;
+	_NodesProcessed = 0;
+	_BytesProcessed = 0;
 }
 
 //=============================================================================
@@ -54,9 +57,9 @@ void HashedFiles::AddNode
 }
 
 //=============================================================================
-// SortAndCheck - Called after adding all the nodes, sorts by FileHash and then
-//                by FileName.  After sorting, marks each duplicated file for
-//                ultimate deletion by the user.
+// SortAndCheck - Called after adding and processing all the nodes, sorts by
+//                FileHash and then by FileName.  After sorting, marks each
+//                duplicated file for ultimate deletion by the user.
 //
 //                Mode controls the sort: 0 means sort by hash and file and
 //                then mark duplicates, 1 means sort by file alone, 2 means
@@ -229,8 +232,34 @@ BOOL HashedFiles::GetFile(int Node, wstring& FileName) const
 }
 
 //=============================================================================
-// Reset - Called by the destructor with Increment = 0. Optionally also called
-// with increment > 0 to reset the class to the initial state.
+// GetNextFile - Similar to GetFile, gets the next file, and updates index.
+//               Called from the worker thread.
+//=============================================================================
+BOOL HashedFiles::GetNextFile(wstring& FileName)
+{
+	if (_NextNode > _NodeCount - 1) return false;
+	FileName = _NodeList[_NextNode++]->FileName->c_str();
+	return true;
+
+}
+
+//=============================================================================
+// SaveHash - Updates FileHash. Called after GetFile from the worker thread.
+//            Updates statistics.
+//=============================================================================
+
+BOOL HashedFiles::SaveHash(int Node, wstring& FileHash)
+{
+	if (Node < 0 || Node > _NodeCount - 1) return false;
+	*(_NodeList[Node]->FileHash) = FileHash;
+	_NodesProcessed++;
+	_BytesProcessed += atoi((const char *)(_NodeList[Node]->FileSize->c_str()));
+	return true;
+}
+
+//=============================================================================
+// Reset - Called by the destructor with Increment = 0. Optionally also
+// called with increment > 0 to reset the class to the initial state.
 //=============================================================================
 
 void HashedFiles::Reset(int Increment)
@@ -253,6 +282,9 @@ void HashedFiles::Reset(int Increment)
 		_NodeList = new FileNode[Increment];
 		_NodeCount = 0;
 		_Allocated = _Increment = Increment;
+		_NextNode = 0;
+		_NodesProcessed = 0;
+		_BytesProcessed = 0;
 	}
 }
 
