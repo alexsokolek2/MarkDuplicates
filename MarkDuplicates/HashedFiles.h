@@ -44,6 +44,7 @@ public:
 	BOOL GetFile(int Node, wstring& FileName) const;
 	BOOL GetNextFile(int& Node, wstring& FileName);
 	BOOL SaveHash(int Node, wstring& FileHash);
+	int  GetNodesProcessed() const { return _NodesProcessed; }
 	int  GetBytesProcessed() const { return _BytesProcessed; }
 	BOOL GetNode(int Node, BOOL& Duplicate) const;
 	void Reset(int Increment = NODE_ALLOCATION_INCREMENT);

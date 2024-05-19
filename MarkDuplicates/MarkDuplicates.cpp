@@ -91,6 +91,7 @@ uint64_t BytesProcessed;                        // Total bytes processed
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
+DWORD WINAPI        FileHashWorkerThread(LPVOID lpParam);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    MDBoxProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -292,7 +293,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	si.fMask = SIF_ALL | SIF_DISABLENOSCROLL;
 	GetScrollInfo(hWnd, SB_VERT, &si);
 
-	ApplicationRegistry* pAppReg = new ApplicationRegistry;;
+	ApplicationRegistry* pAppReg = new ApplicationRegistry;
 	pAppReg->Init(hWnd);
 
 	switch (message)
@@ -449,7 +450,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					break;
 				}
 
-				BOOL bEscapePressed = false;
+				BOOL bAbort = false;
 				BytesProcessed = 0;
 
 				do
@@ -478,33 +479,92 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					pCHashedFiles->AddNode(_T(""), pszFileDate, pszFileTime, pszFileSize, Win32FindData.cFileName);
 
 				} while (FindNextFile(hFind, &Win32FindData) != 0); // Process all files in the directory.
+				FindClose(hFind);
 
-				
-				
-/////////////////// Update the user about progress.
-//					int iPercent = (int)(pCHashedFiles->GetNodeCount() * 100.f / iTotalFiles + 0.5f);
-//					StringCchPrintf(szFilesProcessed, 100,
-//					                _T("Files processed: %u     %d%% of %d     MBytes processed: %llu"),
-//					                pCHashedFiles->GetNodeCount(), iPercent, iTotalFiles, BytesProcessed/1024/1024);
-//					SetBkColor(dc, RGB(240, 240, 240));
-//					TextOut(dc, 16, 16, szFilesProcessed, lstrlen(szFilesProcessed));
-//					TextOut(dc, 16, 40, _T("Press ESC to abort."), 19);
-//
-//					// Check for ESC pressed - Abort if so.
-//					MSG msg;
-//					if (!PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) continue;
-//					if (msg.message != WM_KEYDOWN || msg.wParam != VK_ESCAPE) continue;
-//					pCHashedFiles->Reset();
-//					bEscapePressed = true;
-//					break;
+				// Parameters for each thread.
+				int Threads = 2;
+				HANDLE hcsMutex = CreateMutex(NULL, true, _T("{B0DBEB02-3839-43DD-8D4C-D217B7F4EB9D}"));
+				typedef struct ThreadProcParameters
+				{
+					HANDLE       hcsMutex;
+					BOOL*        pbAbort;
+					HashedFiles* pCHashedFiles;
+				} THREADPROCPARAMETERS, *PTHREADPROCPARAMETERS;
+				PTHREADPROCPARAMETERS* pThreadProcParameters = new PTHREADPROCPARAMETERS[Threads];
+				HANDLE* phThreadArray = new HANDLE[Threads];
+
+				// Initialize and instantiate the Worker Thread Pool
+				for (int Thread = 0; Thread < Threads; ++Thread)
+				{
+					// Allocate the parameter structure for this thread.
+					pThreadProcParameters[Thread] =
+						(PTHREADPROCPARAMETERS)HeapAlloc(GetProcessHeap(),
+							HEAP_ZERO_MEMORY, sizeof(THREADPROCPARAMETERS));
+					if (pThreadProcParameters[Thread] == NULL) ExitProcess(2);
+
+					// Initialize the parameters for this thread.
+					pThreadProcParameters[Thread]->hcsMutex = hcsMutex;
+					pThreadProcParameters[Thread]->pbAbort = &bAbort;
+					pThreadProcParameters[Thread]->pCHashedFiles = pCHashedFiles;
+
+					// Create and launch this thread, initially stalled waiting for the mutex.
+					phThreadArray[Thread] = CreateThread
+					(NULL, 0, FileHashWorkerThread, pThreadProcParameters[Thread], 0, NULL);
+					if (phThreadArray[Thread] == NULL)
+					{
+						MessageBeep(MB_ICONEXCLAMATION);
+						MessageBox(hWnd, _T("CreateThread"), szTitle, MB_OK | MB_ICONEXCLAMATION);
+						ExitProcess(3);
+					}
+				}
+
+				// Release the held threads.
+				ReleaseMutex(hcsMutex);
+
+				// Wait for all threads to terminate.
+				for (;;)
+				{
+					// Wait for up to fifty milliseconds.
+					if (WaitForMultipleObjects(Threads, phThreadArray, TRUE, 50) == WAIT_OBJECT_0) break;
+
+					// Update the user about progress.
+					int iPercent = (int)(pCHashedFiles->GetNodesProcessed() * 100.f /
+						pCHashedFiles->GetNodeCount() + 0.5f);
+					StringCchPrintf(szFilesProcessed, 100,
+						_T("Files processed: %u     %d%% of %d     MBytes processed: %llu"),
+						pCHashedFiles->GetNodeCount(), iPercent, iTotalFiles, BytesProcessed / 1024 / 1024);
+					SetBkColor(dc, RGB(240, 240, 240));
+					TextOut(dc, 16, 16, szFilesProcessed, lstrlen(szFilesProcessed));
+					TextOut(dc, 16, 40, _T("Press ESC to abort."), 19);
+
+					// Check for ESC pressed - Abort if so.
+					MSG msg;
+					if (!PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) continue;
+					if (msg.message != WM_KEYDOWN || msg.wParam != VK_ESCAPE) continue;
+					bAbort = true;
+					WaitForMultipleObjects(Threads, phThreadArray, true, INFINITE);
+					pCHashedFiles->Reset();
+					break;
+				}
+
+				// Delete the critical section mutex
+				CloseHandle(hcsMutex);
+
+				// Deallocate the thread arrays and structures.
+				for (int Thread = 0; Thread < Threads; ++Thread)
+				{
+					CloseHandle(phThreadArray[Thread]);
+					HeapFree(GetProcessHeap(), 0, pThreadProcParameters[Thread]);
+				}
+				delete[] phThreadArray;
+				delete[] pThreadProcParameters;
 
 				MessageBeep(MB_ICONASTERISK);
-				FindClose(hFind);
 				ReleaseDC(hWnd, dc);
 
 				// Sort by hash then file.
 				iSortMode = 0;
-				if (!bEscapePressed) pCHashedFiles->SortAndCheck(iSortMode);
+				if (!bAbort) pCHashedFiles->SortAndCheck(iSortMode);
 				
 				// Setup initial view.
 				bMarked = false;
@@ -521,8 +581,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				SetCurrentDirectory(szOldDirectoryName);
 
 				// Set a 3 second timer to close the modeless dialog box.
-				if (!bEscapePressed) uiTimer = SetTimer(hWnd, 1, 3000, NULL);
-				else                 uiTimer = SetTimer(hWnd, 1, 30,   NULL);
+				if (!bAbort) uiTimer = SetTimer(hWnd, 1, 3000, NULL);
+				else         uiTimer = SetTimer(hWnd, 1, 30,   NULL);
 			}
 		break;
 
@@ -1275,6 +1335,45 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	return 0;
 }
+
+
+
+// Worker thread for processing the hashes of the files
+DWORD WINAPI FileHashWorkerThread(LPVOID lpParam)
+{
+	// This is a copy of the structure from the command procedure.
+	// The address of this structure is passed with lParam.
+	typedef struct ThreadProcParameters
+	{
+		HANDLE       hcsMutex;
+		BOOL* pbAbort;
+		HashedFiles* pcsHashedFiles;
+	} THREADPROCPARAMETERS, * PTHREADPROCPARAMETERS;
+	PTHREADPROCPARAMETERS P;
+	P = (PTHREADPROCPARAMETERS)lpParam;
+
+	int Node;
+	wstring FileName, FileHash;
+	sha1file Sha1File;
+
+	// Loop until no more work to do.
+	for (;;)
+	{
+		if (*(P->pbAbort)) return 0; // Case of user pressed ESCAPE
+
+		// Retrieve the next FileName from the NodeList.
+		WaitForSingleObject(P->hcsMutex, INFINITE);
+			BOOL bWorkToDo = P->pcsHashedFiles->GetNextFile(Node, FileName);
+		ReleaseMutex(P->hcsMutex);
+		if (!bWorkToDo) return 0;
+		
+		// Generate hash and save.
+		Sha1File.Process(FileName.c_str(), 0, (TCHAR*)(FileHash.c_str()), NULL);
+		P->pcsHashedFiles->SaveHash(Node, FileHash); // TEST
+	}
+}
+
+
 
 // Message handler for about box.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
