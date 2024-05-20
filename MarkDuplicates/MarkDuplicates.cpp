@@ -1,9 +1,3 @@
-//======================================================================
-// WARNING: If you can see this warning, then you are using the wrong
-// version of the source. Please go back and do a git clone followed by
-// a git checkout v1.0.0.4 to get the latest release version.
-//======================================================================
-// 
 // MarkDuplicates.cpp : Defines the entry point for the application.
 //
 // MarkDuplicates scans a user specified directory, gathering filenames,
@@ -38,7 +32,13 @@
 // 
 // Demonstrates using a class to wrap a set of C functions implementing
 // the SHA-1 Secure Message Digest algorithm described in RFC-3174.
-// 
+//
+// Uses a thread pool of 12 threads to process the hashes.The machine
+// used for development and testing has 12 logical processors, hence
+// the choice of 12 threads.This will still work on a machine that
+// has fewer processors - It will just be slower - To take advantage
+// of a machine with more processors, see the line "int Threads = 12".
+//  
 // Compilation requires that UNICODE be defined. Some of the choices
 // made in code, mainly wstring, do not support detecting UNICODE vs
 // non-UNICODE, so don't compile without UNICODE defined.
@@ -55,6 +55,8 @@
 // Version 1.0.0.3, April 24, 2024, Updated version for release.
 //
 // Version 1.0.0.4, May 14, 2024, Fixed saving/loading of selected directory.
+//
+// Version 1.0.0.5, May 19, 2024, Added support for a thread pool.
 
 #include "framework.h"
 #include "MarkDuplicates.h"
@@ -472,9 +474,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					StringCchPrintf(pszFileSize, FORMATTED_FILE_SIZE_LEN, _T("%9llu"), FileSize);
 					BytesProcessed += FileSize;
 
-					// Generate sha1 digest.
-//					SHAFile.Process(Win32FindData.cFileName, 0, pszMessageDigest, NULL);
-
 					// Add the file information to the HashedFiles class.
 					pCHashedFiles->AddNode(_T(""), pszFileDate, pszFileTime, pszFileSize, Win32FindData.cFileName);
 
@@ -482,7 +481,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				FindClose(hFind);
 
 				// Parameters for each thread.
-				int Threads = 2;
+				int Threads = 12;
 				HANDLE hcsMutex = CreateMutex(NULL, true, _T("{B0DBEB02-3839-43DD-8D4C-D217B7F4EB9D}"));
 				typedef struct ThreadProcParameters
 				{
@@ -532,7 +531,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						pCHashedFiles->GetNodeCount() + 0.5f);
 					StringCchPrintf(szFilesProcessed, 100,
 						_T("Files processed: %u     %d%% of %d     MBytes processed: %llu"),
-						pCHashedFiles->GetNodeCount(), iPercent, iTotalFiles, BytesProcessed / 1024 / 1024);
+						pCHashedFiles->GetNodesProcessed(), iPercent,
+						iTotalFiles, pCHashedFiles->GetBytesProcessed() / 1024 / 1024);
 					SetBkColor(dc, RGB(240, 240, 240));
 					TextOut(dc, 16, 16, szFilesProcessed, lstrlen(szFilesProcessed));
 					TextOut(dc, 16, 40, _T("Press ESC to abort."), 19);
@@ -1353,8 +1353,10 @@ DWORD WINAPI FileHashWorkerThread(LPVOID lpParam)
 	P = (PTHREADPROCPARAMETERS)lpParam;
 
 	int Node;
-	wstring FileName, FileHash;
+	wstring FileName;
 	sha1file Sha1File;
+	int cbMessageDigest = Sha1File.GetMessageDigestLength() * 3 + 1;
+	TCHAR* pszFileHash = new TCHAR[cbMessageDigest];
 
 	// Loop until no more work to do.
 	for (;;)
@@ -1363,14 +1365,18 @@ DWORD WINAPI FileHashWorkerThread(LPVOID lpParam)
 
 		// Retrieve the next FileName from the NodeList.
 		WaitForSingleObject(P->hcsMutex, INFINITE);
-			BOOL bWorkToDo = P->pcsHashedFiles->GetNextFile(Node, FileName);
+		BOOL bWorkToDo = P->pcsHashedFiles->GetNextFile(Node, FileName);
 		ReleaseMutex(P->hcsMutex);
-		if (!bWorkToDo) return 0;
-		
+		if (!bWorkToDo) break;
+
 		// Generate hash and save.
-		Sha1File.Process(FileName.c_str(), 0, (TCHAR*)(FileHash.c_str()), NULL);
-		P->pcsHashedFiles->SaveHash(Node, FileHash); // TEST
+		Sha1File.Process(FileName.c_str(), 0, pszFileHash, NULL);
+		P->pcsHashedFiles->SaveHash(Node, pszFileHash); // TEST
 	}
+
+	delete[] pszFileHash;
+
+	return 0;
 }
 
 

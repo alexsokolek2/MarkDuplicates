@@ -33,6 +33,12 @@ so that review (which can be lengthy) can continue later.
 Demonstrates using a class to wrap a set of C functions implementing
 the SHA-1 Secure Message Digest algorithm described in RFC-3174.
 
+Uses a thread pool of 12 threads to process the hashes. The machine
+used for development and testing has 12 logical processors, hence
+the choice of 12 threads. This will still work on a machine that
+has fewer processors - It will just be slower - To take advantage
+of a machine with more processors, see the line "int Threads = 12".
+
 Compilation requires that UNICODE be defined. Some of the choices
 made in code, mainly wstring, do not support detecting UNICODE vs
 non-UNICODE, so don't compile without UNICODE defined.
@@ -48,4 +54,6 @@ Version 1.0.0.2, April 10, 2024, Corrected PeekMessage() error.
 
 Version 1.0.0.3, April 14, 2024, Updated version for release.
 
-Version 1.0.0.4, May 14, 2024, Fixed saving/loading of selected directory
+Version 1.0.0.4, May 14, 2024, Fixed saving/loading of selected directory.
+
+Version 1.0.0.5, May 19, 2024, Added support for a thread pool.

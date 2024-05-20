@@ -250,12 +250,15 @@ BOOL HashedFiles::GetNextFile(int& Node, wstring& FileName)
 //            Updates statistics.
 //=============================================================================
 
-BOOL HashedFiles::SaveHash(int Node, wstring& FileHash)
+BOOL HashedFiles::SaveHash(int Node, TCHAR* pszFileHash)
 {
 	if (Node < 0 || Node > _NodeCount - 1) return false;
-	*(_NodeList[Node]->FileHash) = FileHash;
+	*(_NodeList[Node]->FileHash) = _T("");
+	for (int i = 0; i < lstrlen(pszFileHash); ++i)
+		*(_NodeList[Node]->FileHash) += pszFileHash[i];
 	_NodesProcessed++;
-	_BytesProcessed += _wtoi((const TCHAR *)(_NodeList[Node]->FileSize->c_str()));
+	
+	_BytesProcessed += _wtoi((const TCHAR*)(_NodeList[Node]->FileSize->c_str()));
 	return true;
 }
 
