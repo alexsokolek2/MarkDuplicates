@@ -1,5 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-// OpenFiles.cpp
+// OpenFiles.cpp - Similar to HashedFiles, but stores only the FileName,
+//                 Y position, and Index. Used to identify what file is
+//                 selected when a mouse click occurs. Only used for one
+//                 page full of files.
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "framework.h"
@@ -17,7 +20,8 @@ OpenFiles::OpenFiles(int Increment)
 }
 
 //=============================================================================
-// AddFile - Allocate node if needed and save YTop, YBottom, FileName, and Index.
+// AddFile - Allocate node if needed and save YTop, YBottom, FileName,
+//           and Index.
 //=============================================================================
 void OpenFiles::AddFile(int YTop, int YBottom, const wstring& FileName, int Index)
 {
