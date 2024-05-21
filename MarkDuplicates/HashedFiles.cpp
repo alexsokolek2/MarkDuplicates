@@ -8,7 +8,7 @@
 // user. Various sorting options are available. The base sort option is
 // by FileHash, then by FileName, which places identical files together
 // with the second and subsequent file(s) marked as duplicates. Save and
-// Load methods are provide to save the class and load it back later.
+// Load methods are provided to save the class and load it back later.
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "framework.h"
@@ -29,7 +29,9 @@ HashedFiles::HashedFiles(int Increment)
 }
 
 //=============================================================================
-// AddNode - Allocate nodes if needed and load FileHash, DateTime, FileSize, and FileName.
+// AddNode - Allocate nodes if needed and load FileHash, DateTime, FileSize,
+//           and FileName. Note that the FileHash is being initialized as a
+//           zero-length string with final load being done by SaveHash.
 //=============================================================================
 void HashedFiles::AddNode
 	(const wstring& FileHash, const wstring& FileDate, const wstring& FileTime,
@@ -191,8 +193,9 @@ int HashedFiles::SizeCompare(const wstring& string1, const wstring& string2) con
 }
 
 //=============================================================================
-// GetNode - Called after calling AddNode for each file along with SortAndCheck,
-// to retrieve the sorted and marked FileHashes, FileDates, FileSizes, and FileNames.
+// GetNode - Called after calling AddNode and SaveHash for each file along with
+// SortAndCheck, to retrieve the sorted and marked FileHashes, FileDates,
+// FileSizes, and FileNames.
 //=============================================================================
 
 BOOL HashedFiles::GetNode
