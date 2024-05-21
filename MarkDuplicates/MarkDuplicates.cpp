@@ -45,7 +45,7 @@
 // Norton 360 trips up when Mark is performed. Apparantly renaming a
 // lot of files is considiered suspicious behavior. Make sure that the
 // executable is on the Excluded List. (I put the entire VS directory
-// source tree on the Excluded List.
+// source tree on the Excluded List.)
 // 
 // Compilation requires that UNICODE be defined. Some of the choices
 // made in code, mainly wstring, do not support detecting UNICODE vs
@@ -1372,7 +1372,7 @@ DWORD WINAPI FileHashWorkerThread(LPVOID lpParam)
 
 		// Retrieve the next FileName from the NodeList.
 		WaitForSingleObject(P->hcsMutex, INFINITE);                          // Begin critical section.
-			BOOL bWorkToDo = P->pcsHashedFiles->GetNextFile(Node, FileName); //
+			BOOL bWorkToDo = P->pcsHashedFiles->GetNextFile(Node, FileName); // Critical Section
 		ReleaseMutex(P->hcsMutex);                                           // End Critical section.
 		if (!bWorkToDo) break;
 
