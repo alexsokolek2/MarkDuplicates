@@ -12,7 +12,7 @@
 // duplicate copies of the files. The user can override the duplicate
 // status of each file with X (for duplicate) and O (for non duplicate).
 // While looking at the list of files, the user can examine a file by
-// pressing Enter or double clicking. This uses a Shell Open process.
+// pressing Enter, Space or double clicking, using a Shell Open process.
 //
 // In addition to this marking, the user can initiate a test sequence
 // which tests the SHA-1 implementation with the four tests described
@@ -37,8 +37,16 @@
 // used for development and testing has 12 logical processors, hence
 // the choice of 12 threads.This will still work on a machine that
 // has fewer processors - It will just be slower - To take advantage
-// of a machine with more processors, see the line "int Threads = 12".
+// of a machine with more processors, see line 483, "int Threads = 12".
 //  
+// It is suggested that a backup copy of the directory in question be
+// made, in case something goes wrong.
+// 
+// Norton 360 trips up when Mark is performed. Apparantly renaming a
+// lot of files is considiered suspicious behavior. Make sure that the
+// executable is on the Excluded List. (I put the entire VS directory
+// source tree on the Excluded List.
+// 
 // Compilation requires that UNICODE be defined. Some of the choices
 // made in code, mainly wstring, do not support detecting UNICODE vs
 // non-UNICODE, so don't compile without UNICODE defined.
@@ -77,7 +85,6 @@ LOGFONT sLogFont;                               // The LogFont structure for the
 BOOL bChooseFont = false;                       // The result of calling ChooseFont
 HFONT hFont = 0, hOldFont = 0;                  // Old and new fonts for the paint procedure
 HashedFiles* pCHashedFiles;                     // Hashed Files class
-//wstring DirectoryName;                          // Temp directory for hashed files
 TCHAR szDirectoryName[MAX_PATH];                // Directory for hashed files
 TCHAR szOldDirectoryName[MAX_PATH];             // Original current directory
 BOOL bMarked = false;                           // Flag indicating that the files have already been marked
@@ -367,7 +374,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 		case ID_FILE_SCAN:
 			/////////////////////////////////////////////////////////////////////////////////////////////////
-			// Select directory and then scan, hash, and sort.
+			// Select directory and then scan, hash, and sort. Hashing is done by a thread pool.
 			/////////////////////////////////////////////////////////////////////////////////////////////////
 			{
 				MessageBox(hWnd, _T("Navigate to the desired directory and double\n"
@@ -474,14 +481,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					StringCchPrintf(pszFileSize, FORMATTED_FILE_SIZE_LEN, _T("%9llu"), FileSize);
 					BytesProcessed += FileSize;
 
-					// Add the file information to the HashedFiles class.
+					// Add the file information to the HashedFiles class. Note that FileHash is null.
 					pCHashedFiles->AddNode(_T(""), pszFileDate, pszFileTime, pszFileSize, Win32FindData.cFileName);
 
 				} while (FindNextFile(hFind, &Win32FindData) != 0); // Process all files in the directory.
 				FindClose(hFind);
 
 				// Parameters for each thread.
-				int Threads = 12;
+				int Threads = 12; // Adjust as needed for the number of logical processors in the system.
 				HANDLE hcsMutex = CreateMutex(NULL, true, _T("{B0DBEB02-3839-43DD-8D4C-D217B7F4EB9D}"));
 				typedef struct ThreadProcParameters
 				{
@@ -678,7 +685,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				MessageBox(hWnd, _T("Scan first, then re-sort!"), szTitle, MB_OK | MB_ICONEXCLAMATION);
 				break;
 			}
-			iSortMode = 0; // Flag for painting and scrolling.
+			iSortMode = 0; // Flag for sorting, painting, and scrolling.
 			pCHashedFiles->SortAndCheck(iSortMode);
 
 			iStartNode = 0; // Start paint from the first entry in the list.
@@ -697,7 +704,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				MessageBox(hWnd, _T("Scan first, then resort!"), szTitle, MB_OK | MB_ICONEXCLAMATION);
 				break;
 			}
-			iSortMode = 1; // Flag for painting and scrolling.
+			iSortMode = 1; // Flag for sorting, painting, and scrolling.
 			pCHashedFiles->SortAndCheck(iSortMode);
 
 			iStartNode = 0; // Start paint from the first entry in the list.
@@ -716,7 +723,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				MessageBox(hWnd, _T("Scan first, then resort!"), szTitle, MB_OK | MB_ICONEXCLAMATION);
 				break;
 			}
-			iSortMode = 2; // Flag for painting and scrolling.
+			iSortMode = 2; // Flag for sorting, painting, and scrolling.
 			pCHashedFiles->SortAndCheck(iSortMode);
 
 			iStartNode = 0; // Start paint from the first entry in the list.
@@ -735,7 +742,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				MessageBox(hWnd, _T("Scan first, then resort!"), szTitle, MB_OK | MB_ICONEXCLAMATION);
 				break;
 			}
-			iSortMode = 3; // Flag for painting and scrolling.
+			iSortMode = 3; // Flag for sorting, painting, and scrolling.
 			pCHashedFiles->SortAndCheck(iSortMode);
 
 			iStartNode = 0; // Start paint from the first entry in the list.
@@ -824,7 +831,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		InvalidateRect(hWnd, NULL, true);
 		break;
 
-	// 5 second timer to close the progress box.
+	// 3 second timer to close the progress box.
 	case WM_TIMER:
 		KillTimer(hWnd, uiTimer);
 		ShowWindow(hWndProgressBox, SW_HIDE);
@@ -1364,14 +1371,14 @@ DWORD WINAPI FileHashWorkerThread(LPVOID lpParam)
 		if (*(P->pbAbort)) return 0; // Case of user pressed ESCAPE
 
 		// Retrieve the next FileName from the NodeList.
-		WaitForSingleObject(P->hcsMutex, INFINITE);
-		BOOL bWorkToDo = P->pcsHashedFiles->GetNextFile(Node, FileName);
-		ReleaseMutex(P->hcsMutex);
+		WaitForSingleObject(P->hcsMutex, INFINITE);                          // Begin critical section.
+			BOOL bWorkToDo = P->pcsHashedFiles->GetNextFile(Node, FileName); //
+		ReleaseMutex(P->hcsMutex);                                           // End Critical section.
 		if (!bWorkToDo) break;
 
 		// Generate hash and save.
 		Sha1File.Process(FileName.c_str(), 0, pszFileHash, NULL);
-		P->pcsHashedFiles->SaveHash(Node, pszFileHash); // TEST
+		P->pcsHashedFiles->SaveHash(Node, pszFileHash); // No Critical Section needed.
 	}
 
 	delete[] pszFileHash;
