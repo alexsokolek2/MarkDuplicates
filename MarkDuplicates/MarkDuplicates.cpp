@@ -24,7 +24,7 @@
 // will fix that. I like Courier Bold 12 Green best.
 // 
 // Saves and restores the window placement in the registry at
-// HKCU/Software/Alex Sokolek/Mark Duplicates/1.0.0.1/WindowPlacement.
+// HKCU/Software/Alex Sokolek/Mark Duplicates/1.0.0.6/WindowPlacement.
 // 
 // Provision is made for saving and restoring the current node list,
 // along with the sort mode and scroll position and the selected file
@@ -65,6 +65,8 @@
 // Version 1.0.0.4, May 14, 2024, Fixed saving/loading of selected directory.
 //
 // Version 1.0.0.5, May 19, 2024, Added support for a thread pool.
+//
+// Version 1.0.0.6, May 21, 2024, Updated version for release. Comment changes only.
 
 #include "framework.h"
 #include "MarkDuplicates.h"

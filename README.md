@@ -65,3 +65,5 @@ Version 1.0.0.3, April 24, 2024, Updated version for release.
 Version 1.0.0.4, May 14, 2024, Fixed saving/loading of selected directory.
 
 Version 1.0.0.5, May 19, 2024, Added support for a thread pool.
+
+Version 1.0.0.6, May 21, 2024, Updated version for release. Comment changes only.
