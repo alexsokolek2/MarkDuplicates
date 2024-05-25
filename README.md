@@ -24,7 +24,7 @@ do not line up, but changing to a fixed pitch font, such as Courier
 will fix that. I like Courier Bold 12 Green best.
  
 Saves and restores the window placement in the registry at
-HKCU/Software/Alex Sokolek/Mark Duplicates/1.0.0.6/WindowPlacement.
+HKCU/Software/Alex Sokolek/Mark Duplicates/1.0.0.7/WindowPlacement.
  
 Provision is made for saving and restoring the current node list,
 along with the sort mode and scroll position and the selected file
@@ -43,7 +43,7 @@ or adjust the threads with <Edit><Threads>.
 It is suggested that a backup copy of the directory in question be
 made, in case something goes wrong.
  
-Norton 360 balks when Mark is performed. Apparently renaming a lot
+Norton 360 balks when Mark is performed. Apparently, renaming a lot
 of files is considiered suspicious behavior. Make sure that the
 executable is on the Excluded List. (I put the entire VS directory
 source tree on the Excluded List.)
