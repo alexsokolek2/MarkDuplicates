@@ -17,19 +17,19 @@
 // In addition to this marking, the user can initiate a test sequence
 // which tests the SHA-1 implementation with the four tests described
 // in RFC-3174, along with a fifth test of my own, a large PDF file.
-// 
+//
 // The user can change the font and color of the display, and that
 // will be saved to the registry. Initially, the columns of the display
 // do not line up, but changing to a fixed pitch font, such as Courier
 // will fix that. I like Courier Bold 12 Green best.
-// 
+//
 // Saves and restores the window placement in the registry at
-// HKCU/Software/Alex Sokolek/Mark Duplicates/1.0.0.6/WindowPlacement.
-// 
+// HKCU/Software/Alex Sokolek/Mark Duplicates/1.0.0.7/WindowPlacement.
+//
 // Provision is made for saving and restoring the current node list,
 // along with the sort mode and scroll position and the selected file
 // so that review (which can be lengthy) can continue later.
-// 
+//
 // Demonstrates using a class to wrap a set of C functions implementing
 // the SHA-1 Secure Message Digest algorithm described in RFC-3174.
 //
@@ -37,24 +37,24 @@
 // used for development and testing has 12 logical processors, hence
 // the choice of 12 threads.This will still work on a machine that
 // has fewer processors - It will just be slower - To take advantage
-// of a machine with more processors, see line 100, "int Threads = 12",
+// of a machine with more processors, see line 103, "int Threads = 12",
 // or adjust the threads with <Edit><Threads>.
-//  
+//
 // It is suggested that a backup copy of the directory in question be
 // made, in case something goes wrong.
-// 
-// Norton 360 balks when Mark is performed. Apparantly renaming a lot
+//
+// Norton 360 balks when Mark is performed. Apparantly, renaming a lot
 // of files is considiered suspicious behavior. Make sure that the
 // executable is on the Excluded List. (I put the entire VS directory
 // source tree on the Excluded List.)
-// 
+//
 // Compilation requires that UNICODE be defined. Some of the choices
 // made in code, mainly wstring, do not support detecting UNICODE vs
 // non-UNICODE, so don't compile without UNICODE defined.
 //
 // In case you get linker errors, be sure to include version.lib
 // in the linker input line.
-// 
+//
 // Microsoft Visual Studio 2022 Community Edition 64 Bit 17.9.6
 //
 // Alex Sokolek, Version 1.0.0.1, Copyright (c) March 29, 2024
@@ -68,6 +68,8 @@
 // Version 1.0.0.5, May 19, 2024, Added support for a thread pool.
 //
 // Version 1.0.0.6, May 21, 2024, Updated version for release. Comment changes only.
+//
+// Version 1.0.0.7, May 25, 2024, Added elapsed time status and adjustable threads.
 
 #include "framework.h"
 #include "MarkDuplicates.h"
@@ -98,7 +100,7 @@ int iSelectedFile;                              // The file in the window that i
 int iNode;                                      // The node that is selected by single click
 HWND hWndProgressBox;                           // The handle of the modeless progress dialog box
 uint64_t BytesProcessed;                        // Total bytes processed
-int Threads = 12;                               // The size of the thread pool
+int Threads = 12;                               // The initial size of the thread pool
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -106,6 +108,8 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 DWORD WINAPI        FileHashWorkerThread(LPVOID lpParam);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    Parameters(HWND, UINT, WPARAM, LPARAM);
+TCHAR*              iTos(int);
 INT_PTR CALLBACK    MDBoxProc(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
@@ -170,7 +174,7 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
 
 	// Check for memory leaks. (Debug only.)
 	#ifdef _DEBUG
-	_CrtMemCheckpoint(&sNew); //take a snapshot 
+	_CrtMemCheckpoint(&sNew); //take a snapshot
 	if (_CrtMemDifference(&sDiff, &sOld, &sNew)) // if there is a difference
 	{
 		MessageBeep(MB_ICONEXCLAMATION);
@@ -606,9 +610,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				// Restore original current directory.
 				SetCurrentDirectory(szOldDirectoryName);
 
-				// Set a 5 second timer to close the modeless dialog box.
-				if (!bAbort) uiTimer = SetTimer(hWnd, 1, 5000, NULL);
-				else         uiTimer = SetTimer(hWnd, 1, 50,   NULL);
+				// Set a 3 second timer to close the modeless dialog box.
+				if (!bAbort) uiTimer = SetTimer(hWnd, 1, 3000, NULL);
+				else         uiTimer = SetTimer(hWnd, 1, 30,   NULL); // Quick close on Abort
 			}
 		break;
 
@@ -815,6 +819,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case IDM_ABOUT:
 			/////////////////////////////////////////////////////////////////////////////////////////////////
 			DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+			break;
+		case ID_EDIT_THREADS:
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG2), hWnd, Parameters);
 			break;
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
@@ -1426,6 +1433,83 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	return (INT_PTR)FALSE;
 }
+
+
+
+
+// Message handler for parameters box.
+INT_PTR CALLBACK Parameters(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(lParam);
+	switch (message)
+	{
+	case WM_INITDIALOG:
+	{
+		SetDlgItemText(hDlg, IDC_THREADS, iTos(Threads));
+
+		return (INT_PTR)TRUE;
+
+		break;
+	}
+
+	case WM_COMMAND:
+	{
+		int ctlID = LOWORD(wParam);
+		switch (ctlID)
+		{
+
+		case IDCANCEL:
+		{
+			EndDialog(hDlg, LOWORD(wParam));
+			return (INT_PTR)TRUE;
+		}
+
+		case IDOK:
+		{
+			TCHAR sz[64];
+			int ThreadsTemp;
+
+			if (GetDlgItemText(hDlg, IDC_THREADS, sz, 64) == 0 || swscanf_s(sz, _T("%d"), &ThreadsTemp) == 0)
+			{
+				MessageBeep(MB_ICONEXCLAMATION);
+				MessageBox(hDlg, _T("Enter number for Threads."), _T("Error"), MB_OK | MB_ICONEXCLAMATION);
+				SendMessage(hDlg, WM_NEXTDLGCTL, (WPARAM)GetDlgItem(hDlg, IDC_THREADS), true);
+				break;
+			}
+
+			if (ThreadsTemp <= 0 || ThreadsTemp >= 65)
+			{
+				MessageBeep(MB_ICONEXCLAMATION);
+				MessageBox(hDlg, _T("Threads must be greater than zero and less than 65."), _T("Error"), MB_OK | MB_ICONEXCLAMATION);
+				SendMessage(hDlg, WM_NEXTDLGCTL, (WPARAM)GetDlgItem(hDlg, IDC_THREADS), true);
+				break;
+			}
+
+			Threads = ThreadsTemp;
+
+			EndDialog(hDlg, LOWORD(wParam));
+			return (INT_PTR)TRUE;
+		}
+		default:
+			break;
+		}
+		break;
+	}
+	}
+	return (INT_PTR)FALSE;
+}
+
+
+
+// Convert int to string. Helper for the threads dialog box procedure.
+TCHAR* iTos(int i)
+{
+	static TCHAR sz[20];
+	StringCchPrintf(sz, 20, _T("%d"), i);
+	return sz;
+}
+
+
 
 // Message handler for modeless dialog box.
 INT_PTR CALLBACK MDBoxProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
