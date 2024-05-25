@@ -13,7 +13,7 @@
 #include <shellapi.h>
 #include <Objbase.h>
 #define _CRTDBG_MAP_ALLOC //to get more details
-#include <stdlib.h>  
+#include <stdlib.h>
 #include <crtdbg.h>   //for malloc and free
 
 #include <malloc.h>
