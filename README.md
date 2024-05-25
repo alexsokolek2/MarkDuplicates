@@ -37,7 +37,7 @@ Uses a thread pool of 12 threads to process the hashes.The machine
 used for development and testing has 12 logical processors, hence
 the choice of 12 threads.This will still work on a machine that
 has fewer processors - It will just be slower - To take advantage
-of a machine with more processors, see line 100, "int Threads = 12",
+of a machine with more processors, see line 103, "int Threads = 12",
 or adjust the threads with <Edit><Threads>.
   
 It is suggested that a backup copy of the directory in question be
