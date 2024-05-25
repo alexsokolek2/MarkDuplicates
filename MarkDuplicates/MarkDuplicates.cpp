@@ -412,6 +412,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					break;
 				}
 				ofn.lpstrFile[ofn.nFileOffset] = TCHAR('\0'); // We only want the path, so eliminate the file name.
+
+				// Snapshot the start time.
+				LARGE_INTEGER liFrequency, liStart, liEnd;
+				QueryPerformanceFrequency(&liFrequency); // 10 megahertz.
+				QueryPerformanceCounter(&liStart); // 100 nanosecond ticks.
+				double dStart = (double)liStart.QuadPart / liFrequency.QuadPart; // Convert to seconds
+
 				WIN32_FIND_DATA Win32FindData;
 
 				FILETIME LocalFileTime;
@@ -443,6 +450,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				// Setup to use the modeless dialog box to display progress.
 				dc = GetDC(hWndProgressBox);
 				TCHAR szFilesProcessed[100];
+				TCHAR szSecondsElapsed[100];
 				RECT WindowRect;
 				GetWindowRect(hWnd, &WindowRect);
 				ShowWindow(hWndProgressBox, SW_SHOW);
@@ -535,6 +543,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					// Wait for up to fifty milliseconds.
 					if (WaitForMultipleObjects(Threads, phThreadArray, TRUE, 50) == WAIT_OBJECT_0) break;
 
+					// Snapshot the elapsed time and calculate the elapsed seconds.
+					QueryPerformanceCounter(&liEnd);
+					double dEnd = (double)liEnd.QuadPart / liFrequency.QuadPart;
+					double dElapsed = dEnd - dStart;
+
 					// Update the user about progress.
 					int iPercent = (int)(pCHashedFiles->GetNodesProcessed() * 100.f /
 						pCHashedFiles->GetNodeCount() + 0.5f);
@@ -542,9 +555,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						_T("Files processed: %u     %d%% of %d     MBytes processed: %llu"),
 						pCHashedFiles->GetNodesProcessed(), iPercent,
 						iTotalFiles, pCHashedFiles->GetBytesProcessed() / 1024 / 1024);
+					StringCchPrintf(szSecondsElapsed, 100,
+						_T("Elapsed Time: %.3f seconds"), dElapsed);
 					SetBkColor(dc, RGB(240, 240, 240));
 					TextOut(dc, 16, 16, szFilesProcessed, lstrlen(szFilesProcessed));
-					TextOut(dc, 16, 40, _T("Press ESC to abort."), 19);
+					TextOut(dc, 16, 36, szSecondsElapsed, lstrlen(szSecondsElapsed));
+					TextOut(dc, 16, 76, _T("Press ESC to abort."), 19);
 
 					// Check for ESC pressed - Abort if so.
 					MSG msg;
