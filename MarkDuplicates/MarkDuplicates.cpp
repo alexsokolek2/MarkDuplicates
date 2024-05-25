@@ -37,13 +37,14 @@
 // used for development and testing has 12 logical processors, hence
 // the choice of 12 threads.This will still work on a machine that
 // has fewer processors - It will just be slower - To take advantage
-// of a machine with more processors, see line 483, "int Threads = 12".
+// of a machine with more processors, see line 100, "int Threads = 12",
+// or adjust the threads with <Edit><Threads>.
 //  
 // It is suggested that a backup copy of the directory in question be
 // made, in case something goes wrong.
 // 
-// Norton 360 trips up when Mark is performed. Apparantly renaming a
-// lot of files is considiered suspicious behavior. Make sure that the
+// Norton 360 balks when Mark is performed. Apparantly renaming a lot
+// of files is considiered suspicious behavior. Make sure that the
 // executable is on the Excluded List. (I put the entire VS directory
 // source tree on the Excluded List.)
 // 
@@ -97,6 +98,7 @@ int iSelectedFile;                              // The file in the window that i
 int iNode;                                      // The node that is selected by single click
 HWND hWndProgressBox;                           // The handle of the modeless progress dialog box
 uint64_t BytesProcessed;                        // Total bytes processed
+int Threads = 12;                               // The size of the thread pool
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -498,7 +500,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				FindClose(hFind);
 
 				// Parameters for each thread.
-				int Threads = 12; // Adjust as needed for the number of logical processors in the system.
 				HANDLE hcsMutex = CreateMutex(NULL, true, _T("{B0DBEB02-3839-43DD-8D4C-D217B7F4EB9D}"));
 				typedef struct ThreadProcParameters
 				{
@@ -546,7 +547,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					// Snapshot the elapsed time and calculate the elapsed seconds.
 					QueryPerformanceCounter(&liEnd);
 					double dEnd = (double)liEnd.QuadPart / liFrequency.QuadPart;
-					double dElapsed = dEnd - dStart;
+					double dElapsedSeconds = dEnd - dStart;
 
 					// Update the user about progress.
 					int iPercent = (int)(pCHashedFiles->GetNodesProcessed() * 100.f /
@@ -556,7 +557,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						pCHashedFiles->GetNodesProcessed(), iPercent,
 						iTotalFiles, pCHashedFiles->GetBytesProcessed() / 1024 / 1024);
 					StringCchPrintf(szSecondsElapsed, 100,
-						_T("Elapsed Time: %.3f seconds"), dElapsed);
+						_T("Elapsed Time: %.3f seconds     Threads: %d"), dElapsedSeconds, Threads);
 					SetBkColor(dc, RGB(240, 240, 240));
 					TextOut(dc, 16, 16, szFilesProcessed, lstrlen(szFilesProcessed));
 					TextOut(dc, 16, 36, szSecondsElapsed, lstrlen(szSecondsElapsed));
@@ -605,9 +606,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				// Restore original current directory.
 				SetCurrentDirectory(szOldDirectoryName);
 
-				// Set a 3 second timer to close the modeless dialog box.
-				if (!bAbort) uiTimer = SetTimer(hWnd, 1, 3000, NULL);
-				else         uiTimer = SetTimer(hWnd, 1, 30,   NULL);
+				// Set a 5 second timer to close the modeless dialog box.
+				if (!bAbort) uiTimer = SetTimer(hWnd, 1, 5000, NULL);
+				else         uiTimer = SetTimer(hWnd, 1, 50,   NULL);
 			}
 		break;
 
