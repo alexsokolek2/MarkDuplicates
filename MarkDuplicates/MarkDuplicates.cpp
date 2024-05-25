@@ -43,7 +43,7 @@
 // It is suggested that a backup copy of the directory in question be
 // made, in case something goes wrong.
 //
-// Norton 360 balks when Mark is performed. Apparantly, renaming a lot
+// Norton 360 balks when Mark is performed. Apparently, renaming a lot
 // of files is considiered suspicious behavior. Make sure that the
 // executable is on the Excluded List. (I put the entire VS directory
 // source tree on the Excluded List.)
