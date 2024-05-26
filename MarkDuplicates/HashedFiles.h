@@ -23,9 +23,9 @@ private:
 	int          _NodeCount;
 	int          _Allocated;
 	int          _Increment;
-	int          _NextNode;
-	int          _NodesProcessed;
-	uint64_t     _BytesProcessed;
+	volatile int _NextNode;
+	volatile int _NodesProcessed;
+	volatile uint64_t _BytesProcessed;
 	int          HashCompare(const wstring& string1, const wstring& string2) const;
 	int          FileCompare(const wstring& string1, const wstring& string2) const;
 	int          DateCompare(const wstring& string1, const wstring& string2) const;

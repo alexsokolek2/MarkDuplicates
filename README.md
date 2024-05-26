@@ -70,3 +70,5 @@ Version 1.0.0.5, May 19, 2024, Added support for a thread pool.
 Version 1.0.0.6, May 21, 2024, Updated version for release. Comment changes only.
 
 Version 1.0.0.7, May 25, 2024, Added elapsed time status and adjustable threads.
+
+Version 1.0.0.8, May 25, 2024, Added volatile attribute to thread critical identifiers.
